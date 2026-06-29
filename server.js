@@ -29,7 +29,7 @@ app.post('/api/transcribe', async (req, res) => {
 
   const base64Image = image.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
 
-  const defaultPrompt = prompt || 
+  const defaultPrompt = prompt ||
     'Transcribe this historical document. Extract: date, names, locations, occupations, relationships, and any other genealogical information. Return a structured transcription with field labels.';
 
   try {
@@ -61,7 +61,9 @@ app.post('/api/transcribe', async (req, res) => {
       }
     );
 
-    const transcription = response.data.choices && response.data.choices[0] && response.data.choices[0].message ? response.data.choices[0].message.content : '';
+    const transcription = response.data.choices && response.data.choices[0] && response.data.choices[0].message
+      ? response.data.choices[0].message.content
+      : '';
     const duration = Date.now() - start;
 
     res.json({
@@ -73,7 +75,9 @@ app.post('/api/transcribe', async (req, res) => {
   } catch (err) {
     console.error('Transcription error:', err.message);
     const status = err.response && err.response.status ? err.response.status : 500;
-    const detail = err.response && err.response.data && err.response.data.error && err.response.data.error.message ? err.response.data.error.message : err.message;
+    const detail = err.response && err.response.data && err.response.data.error && err.response.data.error.message
+      ? err.response.data.error.message
+      : err.message;
     res.status(status).json({
       success: false,
       error: detail,
