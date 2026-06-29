@@ -32,8 +32,8 @@ app.post('/api/transcribe', async (req, res) => {
   const defaultPrompt = prompt ||
     'Transcribe this historical document. Extract: date, names, locations, occupations, relationships, and any other genealogical information. Return a structured transcription with field labels.';
 
-  // Venice model - user can override, default to qwen-2.5-vl
-  const veniceModel = model || 'qwen-2.5-vl';
+  // Venice model - user can override, default to kimi-k2-7-code for best vision OCR
+  const veniceModel = model || 'kimi-k2-7-code';
 
   try {
     const response = await axios.post(
