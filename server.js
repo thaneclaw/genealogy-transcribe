@@ -7,7 +7,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const VENICE_API_KEY = process.env.VENICE_API_KEY;
 
-// Validate env
 if (!VENICE_API_KEY) {
   console.error('ERROR: VENICE_API_KEY not set');
   process.exit(1);
@@ -16,12 +15,10 @@ if (!VENICE_API_KEY) {
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Transcription endpoint
 app.post('/api/transcribe', async (req, res) => {
   const start = Date.now();
   const { image, prompt } = req.body;
@@ -30,7 +27,6 @@ app.post('/api/transcribe', async (req, res) => {
     return res.status(400).json({ error: 'Missing image field (base64 string)' });
   }
 
-  // Strip data URI prefix if present
   const base64Image = image.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
 
   const defaultPrompt = prompt || 
@@ -48,7 +44,7 @@ app.post('/api/transcribe', async (req, res) => {
               { type: 'text', text: defaultPrompt },
               {
                 type: 'image_url',
-                image_url: { url: `data:image/jpeg;base64,${base64Image}` }
+                image_url: { url: 'data:image/jpeg;base64,' + base64Image }
               }
             ]
           }
@@ -58,14 +54,14 @@ app.post('/api/transcribe', async (req, res) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${VENICE_API_KEY}`,
+          'Authorization': 'Bearer ' + VENICE_API_KEY,
           'Content-Type': 'application/json'
         },
-        timeout: 120000 // 2 minutes
+        timeout: 120000
       }
     );
 
-    const transcription = response.data.choices?.[0]?.message?.content || '';
+    const transcription = response.data.choices && response.data.choices[0] && response.data.choices[0].message ? response.data.choices[0].message.content : '';
     const duration = Date.now() - start;
 
     res.json({
@@ -76,8 +72,8 @@ app.post('/api/transcribe', async (req, res) => {
     });
   } catch (err) {
     console.error('Transcription error:', err.message);
-    const status = err.response?.status || 500;
-    const detail = err.response?.data?.error?.message || err.message;
+    const status = err.response && err.response.status ? err.response.status : 500;
+    const detail = err.response && err.response.data && err.response.data.error && err.response.data.error.message ? err.response.data.error.message : err.message;
     res.status(status).json({
       success: false,
       error: detail,
@@ -86,12 +82,11 @@ app.post('/api/transcribe', async (req, res) => {
   }
 });
 
-// Error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Genealogy transcribe service running on port ${PORT}`);
+  console.log('Genealogy transcribe service running on port ' + PORT);
 });
