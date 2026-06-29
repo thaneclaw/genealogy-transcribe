@@ -21,7 +21,7 @@ app.get('/health', (req, res) => {
 
 app.post('/api/transcribe', async (req, res) => {
   const start = Date.now();
-  const { image, prompt } = req.body;
+  const { image, prompt, model } = req.body;
 
   if (!image) {
     return res.status(400).json({ error: 'Missing image field (base64 string)' });
@@ -32,11 +32,14 @@ app.post('/api/transcribe', async (req, res) => {
   const defaultPrompt = prompt ||
     'Transcribe this historical document. Extract: date, names, locations, occupations, relationships, and any other genealogical information. Return a structured transcription with field labels.';
 
+  // Venice model - user can override, default to qwen-2.5-vl
+  const veniceModel = model || 'qwen-2.5-vl';
+
   try {
     const response = await axios.post(
       'https://api.venice.ai/api/v1/chat/completions',
       {
-        model: 'qwen-2.5-vl',
+        model: veniceModel,
         messages: [
           {
             role: 'user',
@@ -70,7 +73,7 @@ app.post('/api/transcribe', async (req, res) => {
       success: true,
       transcription,
       duration_ms: duration,
-      model: 'qwen-2.5-vl'
+      model: veniceModel
     });
   } catch (err) {
     console.error('Transcription error:', err.message);
